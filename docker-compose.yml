@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: notes_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/notes_db?useUnicode=true&characterEncoding=UTF-8
+      DB_USERNAME: postgres
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      JWT_SECRET: ${JWT_SECRET:-dGhpcyBpcyBhIHNlY3VyZSBrZXkgZm9yIGRldmVsb3BtZW50IG9ubHk=}
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
+

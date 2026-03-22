@@ -1,8 +1,8 @@
 package com.example.notesapp.service;
 
-import com.example.notesapp.dto.AuthRequest;
-import com.example.notesapp.dto.AuthResponse;
-import com.example.notesapp.dto.RegisterRequest;
+import com.example.notesapp.dto.auth.LoginRequest;
+import com.example.notesapp.dto.auth.AuthResponse;
+import com.example.notesapp.dto.auth.RegisterRequest;
 import com.example.notesapp.entity.User;
 import com.example.notesapp.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,10 +27,10 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
         var jwtToken = jwtService.generateToken(new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), java.util.Collections.emptyList()));
-        return new AuthResponse(jwtToken);
+        return new AuthResponse(jwtToken, "Bearer", user.getId(), user.getUsername());
     }
 
-    public AuthResponse authenticate(AuthRequest request) {
+    public AuthResponse authenticate(LoginRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
@@ -40,6 +40,6 @@ public class AuthService {
         var user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow();
         var jwtToken = jwtService.generateToken(new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), java.util.Collections.emptyList()));
-        return new AuthResponse(jwtToken);
+        return new AuthResponse(jwtToken, "Bearer", user.getId(), user.getUsername());
     }
 }

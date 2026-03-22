@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Notes App - Login</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="container">
+    <h1>Notes App</h1>
+
+    <div class="card">
+        <h2>Login</h2>
+        <form id="login-form">
+            <label>Username
+                <input type="text" id="login-username" required>
+            </label>
+            <label>Password
+                <input type="password" id="login-password" required>
+            </label>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Register</h2>
+        <form id="register-form">
+            <label>Username
+                <input type="text" id="register-username" required>
+            </label>
+            <label>Email
+                <input type="email" id="register-email" required>
+            </label>
+            <label>Password
+                <input type="password" id="register-password" required>
+            </label>
+            <button type="submit">Register</button>
+        </form>
+    </div>
+
+    <div id="auth-message" class="message"></div>
+</div>
+
+<script src="/js/auth.js"></script>
+</body>
+</html>
+

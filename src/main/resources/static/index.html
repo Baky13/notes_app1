@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Notes App</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="container">
+    <header class="header">
+        <h1>Your Notes</h1>
+        <div class="header-actions">
+            <input type="text" id="search-input" placeholder="Search notes...">
+            <button id="search-button">Search</button>
+            <button id="logout-button" class="secondary">Logout</button>
+        </div>
+    </header>
+
+    <section class="card">
+        <h2>Create / Edit Note</h2>
+        <form id="note-form">
+            <input type="hidden" id="note-id">
+            <label>Title
+                <input type="text" id="note-title" required>
+            </label>
+            <label>Content
+                <textarea id="note-content" rows="5" required></textarea>
+            </label>
+            <div class="form-actions">
+                <button type="submit">Save</button>
+                <button type="button" id="cancel-edit" class="secondary">Cancel</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Notes</h2>
+        <div id="notes-list"></div>
+        <div class="pagination">
+            <button id="prev-page">Prev</button>
+            <span id="page-info"></span>
+            <button id="next-page">Next</button>
+        </div>
+    </section>
+
+    <div id="notes-message" class="message"></div>
+</div>
+
+<script src="/js/notes.js"></script>
+</body>
+</html>
+

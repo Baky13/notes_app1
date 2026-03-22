@@ -37,10 +37,8 @@ server:
   port: 8080
   servlet:
     context-path: /
-
-# JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:mySecretKey123456789012345678901234567890}
+  secret: ${JWT_SECRET:dGhpcyBpcyBhIHNlY3VyZSBrZXkgZm9yIGRldmVsb3BtZW50IG9ubHk=}
   expiration: 86400000 # 24 hours in milliseconds
 
 # Logging Configuration

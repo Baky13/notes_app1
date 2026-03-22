@@ -1,0 +1,104 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 0 15px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.card {
+    background: #fff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+    box-sizing: border-box;
+}
+
+button {
+    padding: 8px 16px;
+    border: none;
+    background-color: #1976d2;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+button.secondary {
+    background-color: #777;
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.form-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.note-item {
+    border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+}
+
+.note-item h3 {
+    margin: 0 0 5px 0;
+}
+
+.note-actions {
+    margin-top: 5px;
+    display: flex;
+    gap: 10px;
+}
+
+.pagination {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.message {
+    margin-top: 10px;
+    color: #1976d2;
+}
+
+.message.error {
+    color: #d32f2f;
+}
+
