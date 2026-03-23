@@ -23,7 +23,7 @@ services:
       DB_URL: jdbc:postgresql://db:5432/notes_db?useUnicode=true&characterEncoding=UTF-8
       DB_USERNAME: postgres
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      JWT_SECRET: ${JWT_SECRET:-dGhpcyBpcyBhIHNlY3VyZSBrZXkgZm9yIGRldmVsb3BtZW50IG9ubHk=}
+      JWT_SECRET: ${JWT_SECRET:-bXktc3VwZXItc2VjcmV0LWp3dC1rZXktZm9yLW5vdGVzLWFwcC1wcm9kdWN0aW9uLWVudmlyb25tZW50LWRlbW8tc2VjdXJpdHktMjU2LWJpdHM=}
     depends_on:
       db:
         condition: service_healthy
