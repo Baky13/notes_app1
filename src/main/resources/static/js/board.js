@@ -1,57 +1,9 @@
 let currentBoardId = null;
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, m => map[m]);
-}
-
-function getToken() {
-    return localStorage.getItem('token');
-}
-
-function logout() {
-    localStorage.removeItem('token');
-    window.location.href = '/login.html';
-}
+let columnsCache = [];
 
 function getBoardIdFromUrl() {
     const params = new URLSearchParams(window.location.search);
     return params.get('id');
-}
-
-async function makeRequest(url, method = 'GET', body = null) {
-    const options = {
-        method,
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getToken()}`
-        }
-    };
-
-    if (body) {
-        options.body = JSON.stringify(body);
-    }
-
-    const response = await fetch(url, options);
-
-    if (response.status === 401) {
-        logout();
-        throw new Error('Unauthorized');
-    }
-
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `HTTP ${response.status}`);
-    }
-
-    return response.json();
 }
 
 function showMessage(message, type = 'success') {
@@ -88,10 +40,10 @@ async function loadBoard() {
 }
 
 function renderColumns(columns) {
+    columnsCache = columns.sort((a, b) => a.position - b.position);
     const columnsContainer = document.getElementById('board-columns');
-    columnsContainer.innerHTML = columns
-        .sort((a, b) => a.position - b.position)
-        .map(column => `
+    columnsContainer.innerHTML = columnsCache
+        .map((column, index) => `
             <div class="kanban-column" data-column-id="${column.id}">
                 <div class="column-header">
                     <div>${escapeHtml(column.title)}</div>
@@ -99,7 +51,7 @@ function renderColumns(columns) {
                 <div class="column-content" data-column-id="${column.id}">
                     ${(column.tasks || [])
                         .sort((a, b) => a.position - b.position)
-                        .map(task => renderTask(task, column.id))
+                        .map(task => renderTask(task, column.id, index))
                         .join('')}
                 </div>
                 <button class="btn btn-primary add-task-btn" onclick="openCreateTaskModal(${column.id})">+ Add Task</button>
@@ -107,8 +59,11 @@ function renderColumns(columns) {
         `).join('');
 }
 
-function renderTask(task, columnId) {
+function renderTask(task, columnId, columnIndex) {
     const priorityClass = task.priority ? ` task-priority ${task.priority}` : '';
+    const isFirstColumn = columnIndex === 0;
+    const isLastColumn = columnIndex === columnsCache.length - 1;
+    
     return `
         <div class="task-card" data-task-id="${task.id}">
             <h4>${escapeHtml(task.title)}</h4>
@@ -117,6 +72,8 @@ function renderTask(task, columnId) {
             <div class="task-actions">
                 <button class="btn btn-sm" onclick="openEditTaskModal(${currentBoardId}, ${columnId}, ${task.id})">Edit</button>
                 <button class="btn btn-danger btn-sm" onclick="deleteTask(${currentBoardId}, ${columnId}, ${task.id})">Delete</button>
+                ${!isFirstColumn ? `<button class="btn btn-sm" onclick="moveTaskToAdjacentColumn(${columnId}, ${task.id}, ${columnsCache[columnIndex - 1].id}, ${task.position})">←</button>` : ''}
+                ${!isLastColumn ? `<button class="btn btn-sm" onclick="moveTaskToAdjacentColumn(${columnId}, ${task.id}, ${columnsCache[columnIndex + 1].id}, 0)">→</button>` : ''}
             </div>
         </div>
     `;
@@ -230,6 +187,20 @@ async function deleteTask(boardId, columnId, taskId) {
             'DELETE'
         );
         showMessage('Task deleted successfully', 'success');
+        loadBoard();
+    } catch (err) {
+        showMessage(err.message, 'error');
+    }
+}
+
+async function moveTaskToAdjacentColumn(fromColumnId, taskId, toColumnId, position) {
+    try {
+        await makeRequest(
+            `/api/boards/${currentBoardId}/columns/${fromColumnId}/tasks/${taskId}/move`,
+            'PATCH',
+            { columnId: toColumnId, position: position }
+        );
+        showMessage('Task moved successfully', 'success');
         loadBoard();
     } catch (err) {
         showMessage(err.message, 'error');

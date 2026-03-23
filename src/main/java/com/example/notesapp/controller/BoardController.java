@@ -1,6 +1,7 @@
 package com.example.notesapp.controller;
 
 import com.example.notesapp.dto.BoardDto;
+import com.example.notesapp.dto.BoardSummaryDto;
 import com.example.notesapp.dto.CreateBoardDto;
 import com.example.notesapp.dto.UpdateBoardDto;
 import com.example.notesapp.service.BoardService;
@@ -44,9 +45,9 @@ public class BoardController {
     }
 
     @GetMapping
-    public ResponseEntity<List<BoardDto>> getBoards() {
+    public ResponseEntity<List<BoardSummaryDto>> getBoards() {
         Long currentUserId = getCurrentUserId();
-        List<BoardDto> boards = boardService.getBoardsByUserId(currentUserId);
+        List<BoardSummaryDto> boards = boardService.getBoardsByUserId(currentUserId);
         return ResponseEntity.ok(boards);
     }
 

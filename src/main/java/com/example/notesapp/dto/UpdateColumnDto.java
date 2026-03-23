@@ -8,10 +8,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdateBoardDto {
+public class UpdateColumnDto {
     
-    @Size(max = 100, message = "Board title must be at most 100 characters")
+    @Size(max = 100, message = "Column title must be at most 100 characters")
     private String title;
-    
-    private String description;
 }

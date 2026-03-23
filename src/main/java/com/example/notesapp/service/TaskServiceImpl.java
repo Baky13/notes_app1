@@ -46,6 +46,7 @@ public class TaskServiceImpl implements TaskService {
         task.setTitle(createTaskDto.getTitle());
         task.setDescription(createTaskDto.getDescription());
         task.setPriority(createTaskDto.getPriority());
+        task.setDueDate(createTaskDto.getDueDate());
         task.setPosition(nextPosition);
 
         Task savedTask = taskRepository.save(task);
@@ -105,6 +106,9 @@ public class TaskServiceImpl implements TaskService {
         if (updateTaskDto.getPriority() != null) {
             task.setPriority(updateTaskDto.getPriority());
         }
+        if (updateTaskDto.getDueDate() != null) {
+            task.setDueDate(updateTaskDto.getDueDate());
+        }
 
         Task updatedTask = taskRepository.save(task);
         return convertToDto(updatedTask);
@@ -146,9 +150,40 @@ public class TaskServiceImpl implements TaskService {
             throw new TaskNotFoundException("Task not found in this board");
         }
 
-        // If moving to a different column, update old column's positions
+        int newPosition = moveTaskDto.getPosition();
         BoardColumn oldColumn = task.getColumn();
-        if (!oldColumn.getId().equals(moveTaskDto.getColumnId())) {
+        boolean sameColumn = oldColumn.getId().equals(moveTaskDto.getColumnId());
+        
+        // Ensure new position is within bounds
+        List<Task> targetColumnTasks = taskRepository.findByColumnIdOrderByPosition(moveTaskDto.getColumnId());
+        int maxPosition = sameColumn ? targetColumnTasks.size() - 1 : targetColumnTasks.size();
+        if (newPosition < 0) newPosition = 0;
+        if (newPosition > maxPosition) newPosition = maxPosition;
+
+        // If moving within the same column
+        if (sameColumn) {
+            int oldPosition = task.getPosition();
+            
+            if (oldPosition < newPosition) {
+                // Moving down: shift tasks between old+1 and newPosition up
+                for (Task t : targetColumnTasks) {
+                    if (!t.getId().equals(taskId) && t.getPosition() > oldPosition && t.getPosition() <= newPosition) {
+                        t.setPosition(t.getPosition() - 1);
+                        taskRepository.save(t);
+                    }
+                }
+            } else if (oldPosition > newPosition) {
+                // Moving up: shift tasks between newPosition and old-1 down
+                for (Task t : targetColumnTasks) {
+                    if (!t.getId().equals(taskId) && t.getPosition() >= newPosition && t.getPosition() < oldPosition) {
+                        t.setPosition(t.getPosition() + 1);
+                        taskRepository.save(t);
+                    }
+                }
+            }
+            // If oldPosition == newPosition, no changes needed
+        } else {
+            // Moving to different column - first remove from old column
             List<Task> oldColumnTasks = taskRepository.findByColumnIdOrderByPosition(oldColumn.getId());
             int removedPosition = task.getPosition();
             for (Task t : oldColumnTasks) {
@@ -157,26 +192,17 @@ public class TaskServiceImpl implements TaskService {
                     taskRepository.save(t);
                 }
             }
-
-            task.setColumn(targetColumn);
-        }
-
-        // Update position in new/current column
-        List<Task> targetColumnTasks = taskRepository.findByColumnIdOrderByPosition(moveTaskDto.getColumnId());
-        int newPosition = moveTaskDto.getPosition();
-
-        // Ensure new position is within bounds
-        if (newPosition < 0) newPosition = 0;
-        if (newPosition > targetColumnTasks.size()) newPosition = targetColumnTasks.size();
-
-        // Shift tasks in target column
-        for (Task t : targetColumnTasks) {
-            if (!t.getId().equals(taskId)) {
+            
+            // Then insert into new column
+            List<Task> newColumnTasks = taskRepository.findByColumnIdOrderByPosition(targetColumn.getId());
+            for (Task t : newColumnTasks) {
                 if (t.getPosition() >= newPosition) {
                     t.setPosition(t.getPosition() + 1);
                     taskRepository.save(t);
                 }
             }
+            
+            task.setColumn(targetColumn);
         }
 
         task.setPosition(newPosition);
@@ -190,6 +216,7 @@ public class TaskServiceImpl implements TaskService {
         dto.setTitle(task.getTitle());
         dto.setDescription(task.getDescription());
         dto.setPriority(task.getPriority());
+        dto.setDueDate(task.getDueDate());
         dto.setPosition(task.getPosition());
         dto.setCreatedAt(task.getCreatedAt());
         dto.setUpdatedAt(task.getUpdatedAt());

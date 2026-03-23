@@ -1,15 +1,19 @@
 package com.example.notesapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -32,6 +36,10 @@ public class Task {
 
     @Enumerated(EnumType.STRING)
     private Priority priority;
+
+    @Column(name = "due_date")
+    @JsonFormat(pattern = "dd.MM.yyyy")
+    private LocalDate dueDate;
 
     @Column(nullable = false)
     private Integer position;

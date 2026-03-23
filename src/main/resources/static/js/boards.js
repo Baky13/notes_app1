@@ -1,54 +1,5 @@
 const API_BASE = '/api/boards';
 
-function escapeHtml(text) {
-    if (!text) return '';
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, m => map[m]);
-}
-
-function getToken() {
-    return localStorage.getItem('token');
-}
-
-function logout() {
-    localStorage.removeItem('token');
-    window.location.href = '/login.html';
-}
-
-async function makeRequest(url, method = 'GET', body = null) {
-    const options = {
-        method,
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getToken()}`
-        }
-    };
-
-    if (body) {
-        options.body = JSON.stringify(body);
-    }
-
-    const response = await fetch(url, options);
-
-    if (response.status === 401) {
-        logout();
-        throw new Error('Unauthorized');
-    }
-
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `HTTP ${response.status}`);
-    }
-
-    return response.json();
-}
-
 function showMessage(message, type = 'success') {
     const messageEl = document.getElementById('message');
     messageEl.textContent = message;
