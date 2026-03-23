@@ -77,7 +77,7 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional(readOnly = true)
     public BoardDto getBoardById(Long userId, Long boardId) {
-        Board board = boardRepository.findByIdAndUserId(boardId, userId)
+        Board board = boardRepository.findByIdAndUserIdWithColumnsAndTasks(boardId, userId)
             .orElseThrow(() -> new BoardNotFoundException("Board not found"));
         return convertToDto(board);
     }
@@ -110,13 +110,12 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional
     public BoardColumnDto createColumn(Long userId, Long boardId, CreateColumnDto createColumnDto) {
-        boardRepository.findByIdAndUserId(boardId, userId)
+        Board board = boardRepository.findByIdAndUserId(boardId, userId)
             .orElseThrow(() -> new BoardNotFoundException("Board not found"));
 
         List<BoardColumn> existingColumns = boardColumnRepository.findByBoardIdOrderByPosition(boardId);
         int nextPosition = existingColumns.isEmpty() ? 0 : existingColumns.get(existingColumns.size() - 1).getPosition() + 1;
 
-        Board board = boardRepository.findById(boardId).get();
         BoardColumn column = new BoardColumn();
         column.setBoard(board);
         column.setTitle(createColumnDto.getTitle());

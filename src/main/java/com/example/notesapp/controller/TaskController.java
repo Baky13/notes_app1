@@ -90,6 +90,7 @@ public class TaskController {
     @PatchMapping("/{taskId}/move")
     public ResponseEntity<TaskDto> moveTask(
         @PathVariable Long boardId,
+        @PathVariable Long columnId,
         @PathVariable Long taskId,
         @Valid @RequestBody MoveTaskDto moveTaskDto) {
         Long currentUserId = getCurrentUserId();
