@@ -2,6 +2,12 @@ const NOTES_API = '/api/notes';
 let currentPage = 0;
 let currentQuery = '';
 
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 function getAuthHeaders() {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -43,8 +49,8 @@ function renderNotes(pageData) {
         const item = document.createElement('div');
         item.className = 'note-item';
         item.innerHTML = `
-            <h3>${note.title}</h3>
-            <p>${note.content}</p>
+            <h3>${escapeHtml(note.title)}</h3>
+            <p>${escapeHtml(note.content)}</p>
             <div class="note-actions">
                 <button data-id="${note.id}" class="edit-btn">Edit</button>
                 <button data-id="${note.id}" class="delete-btn">Delete</button>

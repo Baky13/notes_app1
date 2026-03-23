@@ -9,6 +9,11 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   app:
     build: .
@@ -20,7 +25,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       JWT_SECRET: ${JWT_SECRET:-dGhpcyBpcyBhIHNlY3VyZSBrZXkgZm9yIGRldmVsb3BtZW50IG9ubHk=}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   pgdata:
