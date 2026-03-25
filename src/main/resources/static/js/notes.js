@@ -21,19 +21,30 @@ function getAuthHeaders() {
 }
 
 async function fetchNotes(page = 0, query = '') {
+    const headers = getAuthHeaders();
     const params = new URLSearchParams({ page, size: 10 });
+    let url;
+    
     if (query) {
         params.append('query', query);
-        const res = await fetch(`${NOTES_API}/search?${params.toString()}`, {
-            headers: getAuthHeaders()
-        });
-        return res.json();
+        url = `${NOTES_API}/search?${params.toString()}`;
     } else {
-        const res = await fetch(`${NOTES_API}?${params.toString()}`, {
-            headers: getAuthHeaders()
-        });
-        return res.json();
+        url = `${NOTES_API}?${params.toString()}`;
     }
+    
+    const res = await fetch(url, { headers });
+    
+    if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('token');
+        window.location.href = '/login.html';
+        throw new Error('Unauthorized');
+    }
+    
+    if (!res.ok) {
+        throw new Error('Failed to load notes');
+    }
+    
+    return res.json();
 }
 
 function renderNotes(pageData) {
@@ -132,9 +143,12 @@ async function loadPage() {
         const data = await fetchNotes(currentPage, currentQuery);
         renderNotes(data);
     } catch (e) {
+        console.error('Failed to load notes:', e);
         const msgEl = document.getElementById('notes-message');
-        msgEl.textContent = 'Failed to load notes';
-        msgEl.classList.add('error');
+        if (msgEl) {
+            msgEl.textContent = 'Failed to load notes';
+            msgEl.classList.add('error');
+        }
     }
 }
 
@@ -174,4 +188,3 @@ window.addEventListener('load', () => {
     }
     loadPage();
 });
-

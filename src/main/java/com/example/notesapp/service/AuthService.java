@@ -21,6 +21,13 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
 
     public AuthResponse register(RegisterRequest request) {
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("Email already exists");
+        }
+        
         var user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
