@@ -1,0 +1,225 @@
+package com.example.notesapp.service;
+
+import com.example.notesapp.dto.TaskDto;
+import com.example.notesapp.dto.CreateTaskDto;
+import com.example.notesapp.dto.UpdateTaskDto;
+import com.example.notesapp.dto.MoveTaskDto;
+import com.example.notesapp.entity.Task;
+import com.example.notesapp.entity.BoardColumn;
+import com.example.notesapp.exception.TaskNotFoundException;
+import com.example.notesapp.exception.BoardColumnNotFoundException;
+import com.example.notesapp.exception.BoardNotFoundException;
+import com.example.notesapp.repository.TaskRepository;
+import com.example.notesapp.repository.BoardColumnRepository;
+import com.example.notesapp.repository.BoardRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class TaskServiceImpl implements TaskService {
+
+    private final TaskRepository taskRepository;
+    private final BoardColumnRepository boardColumnRepository;
+    private final BoardRepository boardRepository;
+
+    @Override
+    @Transactional
+    public TaskDto createTask(Long userId, Long boardId, Long columnId, CreateTaskDto createTaskDto) {
+        // Verify board belongs to user and column belongs to board
+        var board = boardRepository.findByIdAndUserId(boardId, userId)
+            .orElseThrow(() -> new BoardNotFoundException("Board not found"));
+
+        BoardColumn column = boardColumnRepository.findByIdAndBoardId(columnId, boardId)
+            .orElseThrow(() -> new BoardColumnNotFoundException("Column not found"));
+
+        // Get the next position
+        List<Task> tasksInColumn = taskRepository.findByColumnIdOrderByPosition(columnId);
+        Integer nextPosition = tasksInColumn.isEmpty() ? 0 : tasksInColumn.get(tasksInColumn.size() - 1).getPosition() + 1;
+
+        Task task = new Task();
+        task.setColumn(column);
+        task.setTitle(createTaskDto.getTitle());
+        task.setDescription(createTaskDto.getDescription());
+        task.setPriority(createTaskDto.getPriority());
+        task.setDueDate(createTaskDto.getDueDate());
+        task.setPosition(nextPosition);
+
+        Task savedTask = taskRepository.save(task);
+        return convertToDto(savedTask);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TaskDto> getTasksByColumnId(Long userId, Long boardId, Long columnId) {
+        // Verify board belongs to user and column belongs to board
+        boardRepository.findByIdAndUserId(boardId, userId)
+            .orElseThrow(() -> new BoardNotFoundException("Board not found"));
+
+        boardColumnRepository.findByIdAndBoardId(columnId, boardId)
+            .orElseThrow(() -> new BoardColumnNotFoundException("Column not found"));
+
+        return taskRepository.findByColumnIdOrderByPosition(columnId).stream()
+            .map(this::convertToDto)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TaskDto getTaskById(Long userId, Long boardId, Long columnId, Long taskId) {
+        // Verify board belongs to user and column belongs to board
+        boardRepository.findByIdAndUserId(boardId, userId)
+            .orElseThrow(() -> new BoardNotFoundException("Board not found"));
+
+        boardColumnRepository.findByIdAndBoardId(columnId, boardId)
+            .orElseThrow(() -> new BoardColumnNotFoundException("Column not found"));
+
+        Task task = taskRepository.findByIdAndColumnId(taskId, columnId)
+            .orElseThrow(() -> new TaskNotFoundException("Task not found"));
+
+        return convertToDto(task);
+    }
+
+    @Override
+    @Transactional
+    public TaskDto updateTask(Long userId, Long boardId, Long columnId, Long taskId, UpdateTaskDto updateTaskDto) {
+        // Verify board belongs to user and column belongs to board
+        boardRepository.findByIdAndUserId(boardId, userId)
+            .orElseThrow(() -> new BoardNotFoundException("Board not found"));
+
+        boardColumnRepository.findByIdAndBoardId(columnId, boardId)
+            .orElseThrow(() -> new BoardColumnNotFoundException("Column not found"));
+
+        Task task = taskRepository.findByIdAndColumnId(taskId, columnId)
+            .orElseThrow(() -> new TaskNotFoundException("Task not found"));
+
+        if (updateTaskDto.getTitle() != null) {
+            task.setTitle(updateTaskDto.getTitle());
+        }
+        if (updateTaskDto.getDescription() != null) {
+            task.setDescription(updateTaskDto.getDescription());
+        }
+        if (updateTaskDto.getPriority() != null) {
+            task.setPriority(updateTaskDto.getPriority());
+        }
+        if (updateTaskDto.getDueDate() != null) {
+            task.setDueDate(updateTaskDto.getDueDate());
+        }
+
+        Task updatedTask = taskRepository.save(task);
+        return convertToDto(updatedTask);
+    }
+
+    @Override
+    @Transactional
+    public void deleteTask(Long userId, Long boardId, Long columnId, Long taskId) {
+        // Verify board belongs to user and column belongs to board
+        boardRepository.findByIdAndUserId(boardId, userId)
+            .orElseThrow(() -> new BoardNotFoundException("Board not found"));
+
+        boardColumnRepository.findByIdAndBoardId(columnId, boardId)
+            .orElseThrow(() -> new BoardColumnNotFoundException("Column not found"));
+
+        Task task = taskRepository.findByIdAndColumnId(taskId, columnId)
+            .orElseThrow(() -> new TaskNotFoundException("Task not found"));
+
+        taskRepository.delete(task);
+    }
+
+    @Override
+    @Transactional
+    public TaskDto moveTask(Long userId, Long boardId, Long taskId, MoveTaskDto moveTaskDto) {
+        // Verify board belongs to user
+        boardRepository.findByIdAndUserId(boardId, userId)
+            .orElseThrow(() -> new BoardNotFoundException("Board not found"));
+
+        // Verify target column belongs to board
+        BoardColumn targetColumn = boardColumnRepository.findByIdAndBoardId(moveTaskDto.getColumnId(), boardId)
+            .orElseThrow(() -> new BoardColumnNotFoundException("Column not found"));
+
+        // Find task in any column of this board
+        Task task = taskRepository.findById(taskId)
+            .orElseThrow(() -> new TaskNotFoundException("Task not found"));
+
+        // Verify task belongs to this board (by checking its column)
+        if (!task.getColumn().getBoard().getId().equals(boardId)) {
+            throw new TaskNotFoundException("Task not found in this board");
+        }
+
+        int newPosition = moveTaskDto.getPosition();
+        BoardColumn oldColumn = task.getColumn();
+        boolean sameColumn = oldColumn.getId().equals(moveTaskDto.getColumnId());
+        
+        // Ensure new position is within bounds
+        List<Task> targetColumnTasks = taskRepository.findByColumnIdOrderByPosition(moveTaskDto.getColumnId());
+        int maxPosition = sameColumn ? targetColumnTasks.size() - 1 : targetColumnTasks.size();
+        if (newPosition < 0) newPosition = 0;
+        if (newPosition > maxPosition) newPosition = maxPosition;
+
+        // If moving within the same column
+        if (sameColumn) {
+            int oldPosition = task.getPosition();
+            
+            if (oldPosition < newPosition) {
+                // Moving down: shift tasks between old+1 and newPosition up
+                for (Task t : targetColumnTasks) {
+                    if (!t.getId().equals(taskId) && t.getPosition() > oldPosition && t.getPosition() <= newPosition) {
+                        t.setPosition(t.getPosition() - 1);
+                        taskRepository.save(t);
+                    }
+                }
+            } else if (oldPosition > newPosition) {
+                // Moving up: shift tasks between newPosition and old-1 down
+                for (Task t : targetColumnTasks) {
+                    if (!t.getId().equals(taskId) && t.getPosition() >= newPosition && t.getPosition() < oldPosition) {
+                        t.setPosition(t.getPosition() + 1);
+                        taskRepository.save(t);
+                    }
+                }
+            }
+            // If oldPosition == newPosition, no changes needed
+        } else {
+            // Moving to different column - first remove from old column
+            List<Task> oldColumnTasks = taskRepository.findByColumnIdOrderByPosition(oldColumn.getId());
+            int removedPosition = task.getPosition();
+            for (Task t : oldColumnTasks) {
+                if (t.getPosition() > removedPosition) {
+                    t.setPosition(t.getPosition() - 1);
+                    taskRepository.save(t);
+                }
+            }
+            
+            // Then insert into new column
+            List<Task> newColumnTasks = taskRepository.findByColumnIdOrderByPosition(targetColumn.getId());
+            for (Task t : newColumnTasks) {
+                if (t.getPosition() >= newPosition) {
+                    t.setPosition(t.getPosition() + 1);
+                    taskRepository.save(t);
+                }
+            }
+            
+            task.setColumn(targetColumn);
+        }
+
+        task.setPosition(newPosition);
+        Task movedTask = taskRepository.save(task);
+        return convertToDto(movedTask);
+    }
+
+    private TaskDto convertToDto(Task task) {
+        TaskDto dto = new TaskDto();
+        dto.setId(task.getId());
+        dto.setTitle(task.getTitle());
+        dto.setDescription(task.getDescription());
+        dto.setPriority(task.getPriority());
+        dto.setDueDate(task.getDueDate());
+        dto.setPosition(task.getPosition());
+        dto.setCreatedAt(task.getCreatedAt());
+        dto.setUpdatedAt(task.getUpdatedAt());
+        return dto;
+    }
+}

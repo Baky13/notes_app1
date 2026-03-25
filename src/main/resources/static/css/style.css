@@ -102,3 +102,40 @@ button:disabled {
     color: #d32f2f;
 }
 
+.btn {
+    display: inline-block;
+    padding: 8px 16px;
+    border: none;
+    background-color: #1976d2;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 3px;
+    text-decoration: none;
+    text-align: center;
+}
+
+.btn:hover {
+    background-color: #1565c0;
+}
+
+.btn-primary {
+    background-color: #1976d2;
+}
+
+.btn-primary:hover {
+    background-color: #1565c0;
+}
+
+.btn-danger {
+    background-color: #d32f2f;
+}
+
+.btn-danger:hover {
+    background-color: #b71c1c;
+}
+
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+

@@ -19,6 +19,25 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler({
+        BoardNotFoundException.class,
+        BoardColumnNotFoundException.class,
+        TaskNotFoundException.class
+    })
+    public ResponseEntity<ErrorResponse> handleNotFound(RuntimeException ex, WebRequest request) {
+        log.warn("Resource not found: {}", ex.getMessage());
+        
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error("Not Found")
+                .message(ex.getMessage())
+                .path(request.getDescription(false))
+                .build();
+        
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
     @ExceptionHandler(NoteNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoteNotFoundException(
             NoteNotFoundException ex, WebRequest request) {

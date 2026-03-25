@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boards - Mini Trello</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/boards.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>My Boards</h1>
+            <div class="header-actions">
+                <button id="create-board-btn" class="btn btn-primary">New Board</button>
+                <a href="/index.html" class="btn">Back to Notes</a>
+                <button id="logout-btn" class="btn">Logout</button>
+            </div>
+        </div>
+
+        <div id="create-board-form" class="card hidden">
+            <h2>Create New Board</h2>
+            <form id="board-form">
+                <label>
+                    Board Title:
+                    <input type="text" id="board-title" placeholder="Enter board title" required>
+                </label>
+                <label>
+                    Description:
+                    <textarea id="board-description" placeholder="Enter board description (optional)"></textarea>
+                </label>
+                <button type="submit" class="btn btn-primary">Create Board</button>
+                <button type="button" id="cancel-create-btn" class="btn">Cancel</button>
+            </form>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <div id="boards-list" class="boards-grid">
+            <!-- Boards will be loaded here -->
+        </div>
+    </div>
+
+    <script src="/js/utils.js"></script>
+    <script src="/js/boards.js"></script>
+</body>
+</html>
