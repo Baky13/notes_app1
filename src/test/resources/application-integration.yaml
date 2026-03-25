@@ -1,0 +1,14 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  datasource:
+    driver-class-name: org.postgresql.Driver
+
+jwt:
+  secret: "dGVzdC1zZWNyZXQta2V5LWZvci1pbnRlZ3JhdGlvbi10ZXN0cy1pbi1ub3Rlcy1hcHAtcHJvamVjdA=="
+  expiration: 86400000
